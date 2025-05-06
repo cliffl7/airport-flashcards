@@ -1,0 +1,166 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Airport Code Flashcards</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #f2f2f2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem;
+    }
+    .card {
+      background: white;
+      border-radius: 1rem;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+      width: 300px;
+      padding: 2rem;
+      text-align: center;
+      cursor: pointer;
+      margin-bottom: 1rem;
+      user-select: none;
+    }
+    .controls, .form-section {
+      margin-top: 1rem;
+    }
+    .controls button {
+      margin: 0.25rem;
+      padding: 0.5rem 1rem;
+    }
+    input[type="text"] {
+      padding: 0.5rem;
+      margin: 0.25rem;
+      width: 140px;
+    }
+    .entry-list {
+      margin-top: 1rem;
+      max-height: 200px;
+      overflow-y: auto;
+      border: 1px solid #ccc;
+      padding: 1rem;
+      width: 300px;
+      background: #fff;
+      border-radius: 0.5rem;
+    }
+    .entry-list div {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 0.5rem;
+    }
+    .entry-list button {
+      background: red;
+      color: white;
+      border: none;
+      border-radius: 0.25rem;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <h1>Airport Code Flashcards</h1>
+  <div class="card" id="flashcard">Click to Flip</div>
+  <div class="controls">
+    <button onclick="prevCard()">⟵ Prev</button>
+    <button onclick="nextCard()">Next ⟶</button>
+    <button onclick="shuffleCards()">🔀 Shuffle</button>
+  </div>
+
+  <div class="form-section">
+    <h3>Add New Entry</h3>
+    <input type="text" id="newCity" placeholder="City Name">
+    <input type="text" id="newCode" placeholder="Code">
+    <button onclick="addCard()">➕ Add</button>
+  </div>
+
+  <div class="entry-list" id="entryList"></div>
+
+  <script>
+    let cards = JSON.parse(localStorage.getItem('airportCards')) || [
+      { city: "Toronto Pearson, ON", code: "YYZ" },
+      { city: "Montréal Dorval, QC", code: "YUL" },
+      { city: "Vancouver, BC", code: "YVR" },
+      { city: "London Heathrow, UK", code: "LHR" },
+      { city: "Frankfurt, Germany", code: "FRA" }
+    ];
+    let current = 0;
+    let showingCode = false;
+
+    const flashcard = document.getElementById('flashcard');
+    const entryList = document.getElementById('entryList');
+
+    function updateFlashcard() {
+      const entry = cards[current];
+      flashcard.textContent = showingCode ? entry.code : entry.city;
+    }
+
+    function flipCard() {
+      showingCode = !showingCode;
+      updateFlashcard();
+    }
+
+    function nextCard() {
+      current = (current + 1) % cards.length;
+      showingCode = false;
+      updateFlashcard();
+    }
+
+    function prevCard() {
+      current = (current - 1 + cards.length) % cards.length;
+      showingCode = false;
+      updateFlashcard();
+    }
+
+    function shuffleCards() {
+      for (let i = cards.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [cards[i], cards[j]] = [cards[j], cards[i]];
+      }
+      current = 0;
+      updateFlashcard();
+    }
+
+    function addCard() {
+      const city = document.getElementById('newCity').value.trim();
+      const code = document.getElementById('newCode').value.trim().toUpperCase();
+      if (city && code) {
+        cards.push({ city, code });
+        saveCards();
+        renderEntryList();
+        document.getElementById('newCity').value = "";
+        document.getElementById('newCode').value = "";
+      }
+    }
+
+    function removeCard(index) {
+      cards.splice(index, 1);
+      saveCards();
+      renderEntryList();
+      current = 0;
+      updateFlashcard();
+    }
+
+    function saveCards() {
+      localStorage.setItem('airportCards', JSON.stringify(cards));
+    }
+
+    function renderEntryList() {
+      entryList.innerHTML = "";
+      cards.forEach((card, index) => {
+        const row = document.createElement('div');
+        row.innerHTML = `${card.city} (${card.code}) <button onclick="removeCard(${index})">🗑️</button>`;
+        entryList.appendChild(row);
+      });
+    }
+
+    flashcard.addEventListener('click', flipCard);
+
+    updateFlashcard();
+    renderEntryList();
+  </script>
+</body>
+</html>
